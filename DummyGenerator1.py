@@ -4,6 +4,21 @@ from datetime import datetime
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+import streamlit as st
+from datetime import datetime
+
+# Configuración del tema (opcional)
+st.set_page_config(
+    page_title="Generador de Archivos",
+    page_icon="📄",
+)
+
+# Título y logotipo
+st.image("C:\Maxi\Cosas mias\Canal Youtube\Screenshot_46.jpg", width=705)
+
+
+# Aquí continúa tu lógica de generación de archivos...
+
 
 # Tamaño máximo permitido en KB (10 GB)
 MAX_SIZE_KB = 10240000  # 10,240,000 KB
@@ -12,7 +27,7 @@ MAX_SIZE_KB = 10240000  # 10,240,000 KB
 def generate_pdf():
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
-    c.drawString(100, 750, "Este es un archivo PDF generado con ReportLab.")
+    c.drawString(100, 750, "Este es un archivo PDF generado por Maxi Matrero, no dejes de visitar su canal de youtube https://www.youtube.com/@QAtotheSoftware")
     c.save()
     buffer.seek(0)
     return buffer.getvalue()
