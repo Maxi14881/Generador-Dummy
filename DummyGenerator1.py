@@ -27,7 +27,7 @@ MAX_SIZE_KB = 10240000  # 10,240,000 KB
 def generate_pdf():
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
-    c.drawString(100, 750, "Este es un archivo PDF generado por Maxi Matrero, no dejes de visitar su canal de youtube https://www.youtube.com/@QAtotheSoftware")
+    c.drawString(100, 750, "Generado por Maxi Matrero, no dejes de visitar su canal de youtube https://www.youtube.com/@QAtotheSoftware")
     c.save()
     buffer.seek(0)
     return buffer.getvalue()
