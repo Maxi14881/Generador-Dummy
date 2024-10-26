@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # Título y logotipo
-st.image("C:\Maxi\Cosas mias\Canal Youtube\Screenshot_46.jpg", width=705)
+st.image("Screenshot_46.jpg", width=705)
 
 
 # Aquí continúa tu lógica de generación de archivos...
