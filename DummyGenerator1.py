@@ -30,12 +30,12 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-
-# Tamaño máximo permitido en MB (1 GB)
-MAX_SIZE_MB = 1024  # 1 GB (1024 MB)
+# Tamaños máximos permitidos en MB y KB
+MAX_SIZE_MB = 1024  # Límite de 1 GB en MB
+MAX_SIZE_KB = 1048576  # Límite de 1 GB en KB
 
 # Función para generar un archivo PDF con tamaño específico
-def generate_pdf(size_mb):
+def generate_pdf(size_bytes):
     # Crear un PDF base en un buffer
     pdf_buffer = BytesIO()
     c = canvas.Canvas(pdf_buffer, pagesize=letter)
@@ -47,8 +47,7 @@ def generate_pdf(size_mb):
     # Obtener el tamaño actual del PDF y calcular el relleno necesario
     pdf_buffer.seek(0)
     pdf_content = pdf_buffer.read()
-    target_size = size_mb * 1024 * 1024
-    padding_size = target_size - len(pdf_content)
+    padding_size = size_bytes - len(pdf_content)
 
     # Usar un solo bloque de bytes para el relleno
     final_buffer = BytesIO()
@@ -58,9 +57,9 @@ def generate_pdf(size_mb):
     return final_buffer.getvalue()
 
 # Función para generar archivos dummy en diferentes formatos con un tamaño específico
-def generate_dummy_file(size_mb, file_format):
+def generate_dummy_file(size_bytes, file_format):
     if file_format == "PDF":
-        return generate_pdf(size_mb)
+        return generate_pdf(size_bytes)
     else:
         # Encabezados básicos por tipo de archivo
         headers = {
@@ -103,8 +102,7 @@ def generate_dummy_file(size_mb, file_format):
         file_content = headers.get(file_format, b"")
         
         # Calcular la cantidad de bytes de relleno
-        target_size = size_mb * 1024 * 1024
-        padding_size = target_size - len(file_content)
+        padding_size = size_bytes - len(file_content)
         
         # Crear relleno en un solo bloque
         file_content += b'\x00' * padding_size
@@ -119,25 +117,37 @@ file_format = st.selectbox(
      "MP4", "AVI", "MKV", "MOV", "WMV", "FLV", "JPEG", "PNG", "GIF", "BMP", "TIFF", "SVG", "ZIP", "RAR", "7Z", "TAR", "GZ", "MDB", "ACCDB", "SQL", "DBF"]
 )
 
-# Campo para ingresar el tamaño del archivo (en MB con validación)
+# Campo para ingresar el tamaño del archivo
 size_input = st.text_input(
-    "Tamaño del archivo (MB)",
+    "Tamaño del archivo",
     value="10",
-    max_chars=5,
-    help="El tamaño máximo permitido es de 1 GB (1024 MB)."
+    max_chars=7,
+    help="El tamaño máximo permitido es de 1 GB (1024 MB o 1048576 KB)."
 )
 
-# Validación del tamaño y generación de archivo
-if st.button("Generar Archivo"):
-    try:
-        size_mb = int(size_input)
+# Radio button para seleccionar la unidad (KB o MB)
+unit = st.radio("Selecciona la unidad de tamaño:", ("KB", "MB"))
 
-        if size_mb == 0:
-            st.error("El tamaño debe ser mayor que 0 MB.")
-        elif size_mb > MAX_SIZE_MB:
-            st.error("El tamaño máximo permitido es de 1 GB (1024 MB).")
+# Validación y generación del archivo al presionar el botón
+if st.button("Generar Archivo"):
+    # Validación del tamaño y generación de archivo
+    try:
+        size_value = int(size_input)
+        
+        # Convertir a bytes según la unidad seleccionada
+        if unit == "KB":
+            size_bytes = size_value * 1024
+            max_size = MAX_SIZE_KB * 1024
+        else:  # MB
+            size_bytes = size_value * 1024 * 1024
+            max_size = MAX_SIZE_MB * 1024 * 1024
+
+        if size_value <= 0:
+            st.error("El tamaño debe ser mayor que 0.")
+        elif size_bytes > max_size:
+            st.error(f"El tamaño máximo permitido es de {MAX_SIZE_MB} MB o {MAX_SIZE_KB} KB.")
         else:
-            file_content = generate_dummy_file(size_mb, file_format)
+            file_content = generate_dummy_file(size_bytes, file_format)
             filename = f"archivo_dummy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{file_format.lower()}"
             
             # Descargar el archivo directamente desde Streamlit
