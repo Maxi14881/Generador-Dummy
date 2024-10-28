@@ -12,9 +12,6 @@ st.set_page_config(
     page_icon="📄",
 )
 
-# Título y logotipo
-st.image("Screenshot_46.jpg", use_column_width=True)
-
 # Convierte la imagen a base64
 def image_to_base64(image_path):
     with open(image_path, "rb") as image_file:
