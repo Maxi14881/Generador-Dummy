@@ -4,6 +4,7 @@ from datetime import datetime
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+import base64
 
 # Configuración del tema (opcional)
 st.set_page_config(
@@ -13,6 +14,25 @@ st.set_page_config(
 
 # Título y logotipo
 st.image("Screenshot_46.jpg", use_column_width=True)
+
+# Convierte la imagen a base64
+def image_to_base64(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode()
+
+# URL de la imagen y enlace a YouTube
+logo_path = "Screenshot_46.jpg"
+youtube_link = "https://www.youtube.com/@QAtotheSoftware"
+logo_base64 = image_to_base64(logo_path)
+
+# Mostrar imagen enlazada
+st.markdown(
+    f'<a href="{youtube_link}" target="_blank">'
+    f'<img src="data:image/jpeg;base64,{logo_base64}" style="width:100%;"/>'
+    '</a>',
+    unsafe_allow_html=True
+)
+
 
 # Tamaño máximo permitido en MB (1 GB)
 MAX_SIZE_MB = 1024  # 1 GB (1024 MB)
