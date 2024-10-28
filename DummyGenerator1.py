@@ -4,74 +4,96 @@ from datetime import datetime
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-import streamlit as st
-from datetime import datetime
 
 # Configuración del tema (opcional)
 st.set_page_config(
     page_title="Generador de Archivos",
     page_icon="📄",
 )
+
 # Título y logotipo
 st.image("Screenshot_46.jpg", use_column_width=True)
 
-# Tamaño máximo permitido en KB (10 GB)
-MAX_SIZE_KB = 10240000  # 10,240,000 KB
+# Tamaño máximo permitido en MB (10 GB)
+MAX_SIZE_MB = 10240  # 10,240 MB (10 GB)
 
-# Función para generar un archivo PDF
-def generate_pdf():
-    buffer = BytesIO()
-    c = canvas.Canvas(buffer, pagesize=letter)
+# Función para generar un archivo PDF con tamaño específico
+def generate_pdf(size_mb):
+    # Crear un PDF base en un buffer
+    pdf_buffer = BytesIO()
+    c = canvas.Canvas(pdf_buffer, pagesize=letter)
+    
+    # Contenido básico del PDF
     c.drawString(100, 750, "Generado por Maxi Matrero, https://www.youtube.com/@QAtotheSoftware")
     c.save()
-    buffer.seek(0)
-    return buffer.getvalue()
 
-# Función para generar diferentes tipos de archivos
-def generate_file(size_kb, file_format):
-    block_size = min(10 * 1024 * 1024, size_kb * 1024)  # Bloques de hasta 10 MB
-    header_map = {
-        "PDF": b"",  # Se generará aparte si es PDF
-        "TXT": b"",
-        "DOCX": b"",
-        "RTF": b"",
-        "ODT": b"",
-        "XLSX": b"\x09\x08\x10\x00",
-        "CSV": b"\x09\x08\x10\x00",
-        "MP3": b"\x49\x44\x33",
-        "WAV": b"\x49\x44\x33",
-        "AAC": b"\x49\x44\x33",
-        "FLAC": b"\x49\x44\x33",
-        "OGG": b"\x49\x44\x33",
-        "WMA": b"\x49\x44\x33",
-        "MP4": b"\x00\x00\x00\x18ftypmp42",
-        "AVI": b"\x00\x00\x00\x18ftypmp42",
-        "MKV": b"\x00\x00\x00\x18ftypmp42",
-        "MOV": b"\x00\x00\x00\x18ftypmp42",
-        "WMV": b"\x00\x00\x00\x18ftypmp42",
-        "FLV": b"\x00\x00\x00\x18ftypmp42",
-        "JPEG": b"\x89PNG\r\n\x1a\n",
-        "PNG": b"\x89PNG\r\n\x1a\n",
-        "GIF": b"\x89PNG\r\n\x1a\n",
-        "BMP": b"\x89PNG\r\n\x1a\n",
-        "TIFF": b"\x89PNG\r\n\x1a\n",
-        "SVG": b"\x89PNG\r\n\x1a\n",
-        "ZIP": b"PK\x03\x04",
-        "RAR": b"PK\x03\x04",
-        "7Z": b"PK\x03\x04",
-        "TAR": b"PK\x03\x04",
-        "GZ": b"PK\x03\x04",
-        "MDB": b"SQLite format 3\x00",
-        "ACCDB": b"SQLite format 3\x00",
-        "SQL": b"SQLite format 3\x00",
-        "DBF": b"SQLite format 3\x00"
-    }
+    # Obtener el tamaño actual del PDF y calcular el relleno necesario
+    pdf_buffer.seek(0)
+    pdf_content = pdf_buffer.read()
+    target_size = size_mb * 1024 * 1024
+    padding_size = target_size - len(pdf_content)
 
+    # Crear un nuevo buffer y agregar el contenido del PDF seguido del relleno
+    final_buffer = BytesIO()
+    final_buffer.write(pdf_content)
+    if padding_size > 0:
+        final_buffer.write(b'\x00' * padding_size)
+    
+    return final_buffer.getvalue()
+
+# Función para generar archivos dummy en diferentes formatos con un tamaño específico
+def generate_dummy_file(size_mb, file_format):
     if file_format == "PDF":
-        return generate_pdf()  # Genera el PDF usando ReportLab
+        return generate_pdf(size_mb)
     else:
-        header = header_map.get(file_format, b"")
-        file_content = header + bytearray((size_kb * 1024) - len(header))
+        # Encabezados básicos por tipo de archivo
+        headers = {
+            "TXT": b"",
+            "DOCX": b"\x50\x4B\x03\x04",  # DOCX ZIP header
+            "RTF": b"{\\rtf1",
+            "ODT": b"\x50\x4B\x03\x04",  # ODT ZIP header
+            "XLSX": b"\x50\x4B\x03\x04",  # XLSX ZIP header
+            "CSV": b"",
+            "MP3": b"\x49\x44\x33",
+            "WAV": b"RIFF",
+            "AAC": b"",
+            "FLAC": b"fLaC",
+            "OGG": b"OggS",
+            "WMA": b"",
+            "MP4": b"\x00\x00\x00\x18ftypmp42",
+            "AVI": b"RIFF",
+            "MKV": b"\x1A\x45\xDF\xA3",
+            "MOV": b"moov",
+            "WMV": b"",
+            "FLV": b"FLV",
+            "JPEG": b"\xFF\xD8\xFF",
+            "PNG": b"\x89PNG\r\n\x1a\n",
+            "GIF": b"GIF89a",
+            "BMP": b"BM",
+            "TIFF": b"II*\x00",
+            "SVG": b"",
+            "ZIP": b"PK\x03\x04",
+            "RAR": b"Rar!\x1A\x07\x00",
+            "7Z": b"7z\xBC\xAF'\x1C",
+            "TAR": b"",
+            "GZ": b"\x1F\x8B",
+            "MDB": b"\x00\x01\x00\x00Standard Jet DB",
+            "ACCDB": b"\x00\x01\x00\x00Standard Jet DB",
+            "SQL": b"",
+            "DBF": b"\x03"
+        }
+        
+        # Obtener el encabezado del tipo de archivo
+        file_content = headers.get(file_format, b"")
+        
+        # Calcular la cantidad de bytes de relleno
+        target_size = size_mb * 1024 * 1024
+        padding_size = target_size - len(file_content)
+        
+        # Agregar el relleno sin modificar el encabezado
+        if padding_size > 0:
+            file_content += b"\x00" * padding_size
+        
         return file_content
 
 # Interfaz de Streamlit
@@ -82,25 +104,25 @@ file_format = st.selectbox(
      "MP4", "AVI", "MKV", "MOV", "WMV", "FLV", "JPEG", "PNG", "GIF", "BMP", "TIFF", "SVG", "ZIP", "RAR", "7Z", "TAR", "GZ", "MDB", "ACCDB", "SQL", "DBF"]
 )
 
-# Campo para ingresar el tamaño del archivo (texto con validación)
+# Campo para ingresar el tamaño del archivo (en MB con validación)
 size_input = st.text_input(
-    "Tamaño del archivo (KB)",
-    value="1000",
-    max_chars=8,
-    help="El tamaño máximo permitido es de 10 GB (10,240,000 KB)."
+    "Tamaño del archivo (MB)",
+    value="10",
+    max_chars=5,
+    help="El tamaño máximo permitido es de 10 GB (10,240 MB)."
 )
 
 # Validación del tamaño y generación de archivo
 if st.button("Generar Archivo"):
     try:
-        size_kb = int(size_input)
+        size_mb = int(size_input)
 
-       
-        print(size_kb,size_input,MAX_SIZE_KB)
-        if size_kb > MAX_SIZE_KB:
-            st.error("El tamaño máximo permitido es de 10 GB (10,240,000 KB).")
+        if size_mb == 0:
+            st.error("El tamaño debe ser mayor que 0 MB.")
+        elif size_mb > MAX_SIZE_MB:
+            st.error("El tamaño máximo permitido es de 10 GB (10,240 MB).")
         else:
-            file_content = generate_file(size_kb, file_format)
+            file_content = generate_dummy_file(size_mb, file_format)
             filename = f"archivo_dummy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{file_format.lower()}"
             
             # Descargar el archivo directamente desde Streamlit
