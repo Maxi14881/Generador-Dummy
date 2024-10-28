@@ -14,8 +14,8 @@ st.set_page_config(
 # Título y logotipo
 st.image("Screenshot_46.jpg", use_column_width=True)
 
-# Tamaño máximo permitido en MB (10 GB)
-MAX_SIZE_MB = 10240  # 10,240 MB (10 GB)
+# Tamaño máximo permitido en MB (1 GB)
+MAX_SIZE_MB = 1024  # 1 GB (1024 MB)
 
 # Función para generar un archivo PDF con tamaño específico
 def generate_pdf(size_mb):
@@ -33,12 +33,11 @@ def generate_pdf(size_mb):
     target_size = size_mb * 1024 * 1024
     padding_size = target_size - len(pdf_content)
 
-    # Crear un nuevo buffer y agregar el contenido del PDF seguido del relleno
+    # Usar un solo bloque de bytes para el relleno
     final_buffer = BytesIO()
     final_buffer.write(pdf_content)
-    if padding_size > 0:
-        final_buffer.write(b'\x00' * padding_size)
-    
+    final_buffer.write(b'\x00' * padding_size)
+
     return final_buffer.getvalue()
 
 # Función para generar archivos dummy en diferentes formatos con un tamaño específico
@@ -90,10 +89,9 @@ def generate_dummy_file(size_mb, file_format):
         target_size = size_mb * 1024 * 1024
         padding_size = target_size - len(file_content)
         
-        # Agregar el relleno sin modificar el encabezado
-        if padding_size > 0:
-            file_content += b"\x00" * padding_size
-        
+        # Crear relleno en un solo bloque
+        file_content += b'\x00' * padding_size
+
         return file_content
 
 # Interfaz de Streamlit
@@ -109,7 +107,7 @@ size_input = st.text_input(
     "Tamaño del archivo (MB)",
     value="10",
     max_chars=5,
-    help="El tamaño máximo permitido es de 10 GB (10,240 MB)."
+    help="El tamaño máximo permitido es de 1 GB (1024 MB)."
 )
 
 # Validación del tamaño y generación de archivo
@@ -120,7 +118,7 @@ if st.button("Generar Archivo"):
         if size_mb == 0:
             st.error("El tamaño debe ser mayor que 0 MB.")
         elif size_mb > MAX_SIZE_MB:
-            st.error("El tamaño máximo permitido es de 10 GB (10,240 MB).")
+            st.error("El tamaño máximo permitido es de 1 GB (1024 MB).")
         else:
             file_content = generate_dummy_file(size_mb, file_format)
             filename = f"archivo_dummy_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{file_format.lower()}"
