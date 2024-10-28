@@ -12,13 +12,8 @@ st.set_page_config(
     page_title="Generador de Archivos",
     page_icon="📄",
 )
-
 # Título y logotipo
-st.image("Screenshot_46.jpg", width=705)
-
-
-# Aquí continúa tu lógica de generación de archivos...
-
+st.image("Screenshot_46.jpg", use_column_width=True)
 
 # Tamaño máximo permitido en KB (10 GB)
 MAX_SIZE_KB = 10240000  # 10,240,000 KB
